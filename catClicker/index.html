@@ -3,25 +3,54 @@
   <head>
     <title>Cat Clicker</title>
     <script type="text/javascript">
-      var handleLoad = function() {
-        var count = parseInt(localStorage.getItem('count'));
+      var numCats = 0;
+
+      var makeCat = function(name, picture) {
+        localStorageKey = name + '_count';
+        count = parseInt(localStorage.getItem(localStorageKey));
         if (isNaN(count)) {
           count = 0;
         }
-        var cat = document.getElementById('cat');
-        var numClicks = document.getElementById('numClicks');
-        numClicks.innerHTML = count;
-        cat.addEventListener('click', function() {
+
+        var cat = document.createElement('div');
+        var h2 = document.createElement('h2');
+        h2.innerHTML = name + " "
+        var span = document.createElement('span');
+        span.id = 'cat ' + numCats + '_numClicks';
+        span.innerHTML = count;
+        var img = document.createElement('img');
+        img.src = picture;
+        img.alt = 'picture of' + name;
+        img.addEventListener('click', function() {
           count++;
-          localStorage.setItem('count', count);
-          numClicks.innerHTML = count;
+          localStorage.setItem(localStorageKey, count);
+          span.innerHTML = count;
+        });
+        
+        cat.appendChild(img);
+        cat.appendChild(h2);
+        h2.appendChild(span);
+
+        numCats++;
+        return cat;
+      }
+
+      var catElements = [
+        makeCat('cat', 'cat.jpg'),
+        makeCat('nextCat', 'cat2.jpg')
+      ];
+
+      var handleLoad = function() {
+        var cats = document.getElementById('cats');
+        catElements.forEach(function(nextCat) {
+          cats.appendChild(nextCat);
         });
       } 
     </script>
   </head>
   <body onload="handleLoad()">
     <h1> Welcome to Cat Clicker! </h1>
-    <img id="cat" src="cat.jpg" alt="picture of cat"/>
-    <h2> numClicks: <span id="numClicks"></span> </h2>
+    <div id="cats">
+    </div>
   <body>
 </html>
