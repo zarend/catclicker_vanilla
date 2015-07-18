@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cat Clicker</title>
+    <script type="text/javascript">
+      var handleLoad = function() {
+        var count = parseInt(localStorage.getItem('count'));
+        if (isNaN(count)) {
+          count = 0;
+        }
+        var cat = document.getElementById('cat');
+        var numClicks = document.getElementById('numClicks');
+        numClicks.innerHTML = count;
+        cat.addEventListener('click', function() {
+          count++;
+          localStorage.setItem('count', count);
+          numClicks.innerHTML = count;
+        });
+      } 
+    </script>
+  </head>
+  <body onload="handleLoad()">
+    <h1> Welcome to Cat Clicker! </h1>
+    <img id="cat" src="cat.jpg" alt="picture of cat"/>
+    <h2> numClicks: <span id="numClicks"></span> </h2>
+  <body>
+</html>
