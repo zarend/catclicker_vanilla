@@ -6,7 +6,7 @@
       var numCats = 0;
 
       var makeCat = function(name, picture) {
-        localStorageKey = name + '_count';
+        localStorageKey = 'cat' + numCats + '_count';
         count = parseInt(localStorage.getItem(localStorageKey));
         if (isNaN(count)) {
           count = 0;
@@ -22,11 +22,12 @@
         img.src = picture;
         img.alt = 'picture of' + name;
         img.addEventListener('click', function() {
+          count = parseInt(span.innerHTML);
           count++;
           localStorage.setItem(localStorageKey, count);
           span.innerHTML = count;
         });
-        
+
         cat.appendChild(img);
         cat.appendChild(h2);
         h2.appendChild(span);
