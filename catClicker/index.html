@@ -9,10 +9,11 @@
           this.cats = cats || [];
 
           for (var idx in cats) {
-            (function(idx) {
-              cats[idx].count = 0;
-            })(idx);
+            this.cats[idx].count = 0;
+            this.cats[idx].idx = idx;
           }
+
+          this.currCat = this.cats[0];
         }
 
         CatModel.prototype.incrementCatCount = function(idx) {
@@ -20,6 +21,66 @@
         }
 
         return CatModel;
+      })();
+
+      var CatController = (function() {
+        var CatController = function() {}
+
+        CatController.prototype.clickCat = function() {
+          catModel.incrementCatCount(catModel.currCat.idx);
+          catView.renderDisplayArea();
+        }
+
+        CatController.prototype.selectCat = function(idx) {
+          catModel.currCat = catModel.cats[idx];
+          catView.renderDisplayArea();
+        }
+
+        return CatController;
+      })();
+
+      var CatView = (function() {
+        var CatView = function() {
+          this.list = document.getElementById('list');
+          this.displayArea = document.getElementById('displayArea');
+          this.name = document.getElementById('name');
+          this.pic = document.getElementById('pic');
+          this.count = document.getElementById('count');
+
+          pic.addEventListener('click', function() {
+            catCtrl.clickCat();
+          });
+        }
+
+        CatView.prototype.renderCatList = function() {
+          for (var idx in catModel.cats) {
+            (function (idx) {
+              var nextCat = catModel.cats[idx];
+              var catPicker = document.createElement('div');
+              catPicker.innerHTML = nextCat.name;
+              catPicker.addEventListener('click', function() {
+                (function(idx) {
+                  catCtrl.selectCat(idx);
+                })(idx);
+              });
+              this.list.appendChild(catPicker);
+            })(idx);
+          }
+        }
+
+        CatView.prototype.renderDisplayArea = function() {
+          var cat = catModel.currCat;
+          this.name.innerHTML = cat.name;
+          this.pic.src = 'img/' + cat.img;
+          this.count.innerHTML = cat.count;
+        }
+
+        CatView.prototype.render = function() {
+          this.renderCatList();
+          this.renderDisplayArea();
+        }
+
+        return CatView;
       })();
 
       var catModel = new CatModel([
@@ -30,39 +91,12 @@
         {name: 'prayer', img: 'praying.jpg'},
       ]);
 
+      var catCtrl = new CatController();
+      var catView;
+
       var handleLoad = function() {
-        var list = document.getElementById('list');
-        var displayArea = document.getElementById('displayArea');
-        var name = document.getElementById('name');
-        var pic = document.getElementById('pic');
-        var count = document.getElementById('count');
-
-        var selectedCatIdx = 0;
-
-        pic.addEventListener('click', function() {
-          catModel.incrementCatCount(selectedCatIdx);
-          displayCat(selectedCatIdx)
-        })
-
-        var displayCat = function(catIdx) {
-          selectedCatIdx = catIdx;
-          var cat = catModel.cats[catIdx];
-          name.innerHTML = cat.name;
-          pic.src = 'img/' + cat.img;
-          count.innerHTML = cat.count;
-        }
-
-        for (var idx in catModel.cats) {
-          (function(idx) {
-            var nextCat = catModel.cats[idx];
-            var catPicker = document.createElement('div');
-            catPicker.innerHTML = nextCat.name;
-            catPicker.addEventListener('click', function() {
-              displayCat(idx);
-            });
-            list.appendChild(catPicker);
-          })(idx);
-        }
+        catView = new CatView();
+        catView.render();
       } 
     </script>
   </head>
