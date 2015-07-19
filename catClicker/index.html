@@ -3,10 +3,26 @@
   <head>
     <title>Cat Clicker</title>
     <script type="text/javascript">
-      var numCats = 0;
+      var cats = [
+        {name: 'cat', img: 'cat.jpg'},
+        {name: 'nextCat', img: 'cat2.jpg'},
+        {name: 'burrito', img: 'burrito.jpg'},
+        {name: 'bullet', img: 'bullet.jpg'},
+        {name: 'prayer', img: 'praying.jpg'},
+      ];
 
-      var makeCat = function(name, picture) {
-        localStorageKey = 'cat' + numCats + '_count';
+      var nextId = 0;
+      cats.forEach(function(nextCat) {
+        nextCat.id = nextId;
+        nextId++;
+      })
+
+      var makeCatElement = function(cat) {
+        var name = cat.name;
+        var picture = cat.img;
+        var id = cat.id;
+
+        localStorageKey = 'cat' + id + '_count';
         count = parseInt(localStorage.getItem(localStorageKey));
         if (isNaN(count)) {
           count = 0;
@@ -14,15 +30,18 @@
 
         var cat = document.createElement('div');
         var h2 = document.createElement('h2');
-        h2.innerHTML = name + " "
+        h2.innerHTML = name + " ";
         var span = document.createElement('span');
-        span.id = 'cat ' + numCats + '_numClicks';
+        span.id = 'cat ' + id + '_numClicks';
         span.innerHTML = count;
         var img = document.createElement('img');
         img.src = picture;
         img.alt = 'picture of' + name;
         img.addEventListener('click', function() {
           count = parseInt(span.innerHTML);
+          if (isNaN(count)) {
+            count = 0;
+          }
           count++;
           localStorage.setItem(localStorageKey, count);
           span.innerHTML = count;
@@ -32,26 +51,42 @@
         cat.appendChild(h2);
         h2.appendChild(span);
 
-        numCats++;
         return cat;
       }
 
-      var catElements = [
-        makeCat('cat', 'cat.jpg'),
-        makeCat('nextCat', 'cat2.jpg')
-      ];
-
       var handleLoad = function() {
-        var cats = document.getElementById('cats');
-        catElements.forEach(function(nextCat) {
-          cats.appendChild(nextCat);
+        var list = document.getElementById('list');
+        var displayArea = document.getElementById('displayArea');
+        var catElement = null;
+
+        var displayCat = function(catIdx) {
+          var nextCatElement = makeCatElement(cats[catIdx]);
+          if (nextCatElement) {
+            if (catElement) {
+              displayArea.replaceChild(nextCatElement, catElement);
+            } else {
+              displayArea.appendChild(nextCatElement);
+            }
+            catElement = nextCatElement;
+          }
+        }
+
+        cats.forEach(function(nextCat) {
+          var catPicker = document.createElement('div');
+          catPicker.innerHTML = nextCat.name;
+          catPicker.addEventListener('click', function() {
+            displayCat(nextCat.id);
+          });
+          list.appendChild(catPicker);
         });
       } 
     </script>
   </head>
   <body onload="handleLoad()">
     <h1> Welcome to Cat Clicker! </h1>
-    <div id="cats">
+    <div id="list">
+    </div>
+    <div id="displayArea">
     </div>
   <body>
 </html>
