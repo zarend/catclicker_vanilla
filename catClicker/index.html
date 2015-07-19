@@ -8,16 +8,41 @@
         var CatModel = function(cats) {
           this.cats = cats || [];
 
-          for (var idx in cats) {
-            this.cats[idx].count = 0;
-            this.cats[idx].idx = idx;
-          }
+          var nextIdx = 0;
+          cats.forEach(function(nextCat) {
+            nextCat.count = 0;
+            nextCat.idx = nextIdx;
+            nextIdx++;
+          });
 
           this.currCat = this.cats[0];
+          this.showAdmin = false;
+          this.editableCat = null;
         }
 
         CatModel.prototype.incrementCatCount = function(idx) {
           this.cats[idx].count++;
+        }
+
+        CatModel.prototype.clearEditableCat = function() {
+          this.editableCat = null;
+        }
+
+        CatModel.cloneCat = function(cat) {
+          return {name: cat.name, img: cat.img, count: cat.count, idx: cat.idx};
+        }
+
+        CatModel.prototype.createEditableCat = function() {
+          this.editableCat = CatModel.cloneCat(this.currCat);
+        }
+
+        CatModel.prototype.saveChanges = function() {
+          this.cats[this.editableCat.idx] = CatModel.cloneCat(this.editableCat);
+          this.refreshCurrCat();
+        }
+
+        CatModel.prototype.refreshCurrCat = function() {
+          this.currCat = this.cats[this.currCat.idx];
         }
 
         return CatModel;
@@ -36,6 +61,52 @@
           catView.renderDisplayArea();
         }
 
+        CatController.prototype.save = function() {
+          catModel.showAdmin = false;
+          catModel.saveChanges();
+          catModel.clearEditableCat();
+          catView.render();
+        }
+
+        CatController.prototype.cancel = function() {
+          catModel.showAdmin = false;
+          catModel.clearEditableCat();
+          catView.renderAdminPanel();
+        }
+
+        CatController.prototype.showAdmin = function() {
+          var self = this;
+
+          catModel.showAdmin = true;
+          catModel.createEditableCat();
+          catView.renderAdminPanel();
+
+          var save = document.getElementById('save');
+          var cancel = document.getElementById('cancel');
+          var nameField = document.getElementById('nameField');
+          var urlField = document.getElementById('urlField');
+          var clicksField = document.getElementById('clicksField');
+          save.addEventListener('click', function() {
+            self.save();
+          });
+          cancel.addEventListener('click', function() {
+            self.cancel();
+          });
+          nameField.addEventListener('input', function() {
+            catModel.editableCat.name = nameField.value;
+          });
+          urlField.addEventListener('input', function() {
+            catModel.editableCat.url = urlField.value;
+          });
+          clicksField.addEventListener('input', function() {
+            var count = parseInt(clicksField.value);
+            if (isNaN(count)) {
+              count = 0;
+            }
+            catModel.editableCat.count = count;
+          });
+        }
+
         return CatController;
       })();
 
@@ -46,6 +117,8 @@
           this.name = document.getElementById('name');
           this.pic = document.getElementById('pic');
           this.count = document.getElementById('count');
+          this.adminPanel = document.getElementById('adminPanel');
+          this.adminButton = document.getElementById('adminButton');
 
           pic.addEventListener('click', function() {
             catCtrl.clickCat();
@@ -53,19 +126,18 @@
         }
 
         CatView.prototype.renderCatList = function() {
-          for (var idx in catModel.cats) {
-            (function (idx) {
-              var nextCat = catModel.cats[idx];
-              var catPicker = document.createElement('div');
-              catPicker.innerHTML = nextCat.name;
-              catPicker.addEventListener('click', function() {
-                (function(idx) {
-                  catCtrl.selectCat(idx);
-                })(idx);
-              });
-              this.list.appendChild(catPicker);
-            })(idx);
-          }
+          var html = '';
+          catModel.cats.forEach(function(nextCat) {
+            html += '<div id=cat' + nextCat.idx + '> ' + nextCat.name + ' </div>'
+          });
+          this.list.innerHTML = html;
+
+          catModel.cats.forEach(function(nextCat) {
+            var cat = document.getElementById('cat' + nextCat.idx);
+            cat.addEventListener('click', function() {
+              catCtrl.selectCat(nextCat.idx);
+            });
+          });
         }
 
         CatView.prototype.renderDisplayArea = function() {
@@ -75,9 +147,43 @@
           this.count.innerHTML = cat.count;
         }
 
+        CatView.prototype.renderAdminPanel = function() {
+          if (catModel.showAdmin) {
+            var name = catModel.currCat.name;
+            var url = catModel.currCat.img;
+            var clicks = catModel.currCat.count;
+
+            this.adminPanel.innerHTML =
+              '<div>\
+                name\
+                <input id="nameField" type="text" value=' + name + '></input>\
+              </div>\
+              <div>\
+                url\
+                <input id="urlField" type="text" value=' + url + '></input>\
+              </div>\
+              <div>\
+                number of clicks\
+                <input id="clicksField" type="text" value=' + clicks + '></input>\
+              </div>\
+              <div>\
+                <button id="save">Save</button>\
+                <button id="cancel">Cancel</button>\
+              </div>'
+          }
+          else {
+            this.adminPanel.innerHTML = '<button id="adminButton">admin mode</button>';
+            var adminButton = document.getElementById('adminButton');
+            adminButton.addEventListener('click', function() {
+              catCtrl.showAdmin();
+            });
+          }
+        }
+
         CatView.prototype.render = function() {
           this.renderCatList();
           this.renderDisplayArea();
+          this.renderAdminPanel();
         }
 
         return CatView;
@@ -109,5 +215,8 @@
       <img id="pic">
       <h6> <span id="count"> </span> clicks</h6>
     </div>
+    <div id="adminPanel">
+    </div>
+    <button></button>
   <body>
 </html>
