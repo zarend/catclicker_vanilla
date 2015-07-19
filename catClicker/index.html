@@ -1,84 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8">
     <title>Cat Clicker</title>
     <script type="text/javascript">
-      var cats = [
+      var CatModel = (function() {
+        var CatModel = function(cats) {
+          this.cats = cats || [];
+
+          for (var idx in cats) {
+            (function(idx) {
+              cats[idx].count = 0;
+            })(idx);
+          }
+        }
+
+        CatModel.prototype.incrementCatCount = function(idx) {
+          this.cats[idx].count++;
+        }
+
+        return CatModel;
+      })();
+
+      var catModel = new CatModel([
         {name: 'cat', img: 'cat.jpg'},
         {name: 'nextCat', img: 'cat2.jpg'},
         {name: 'burrito', img: 'burrito.jpg'},
         {name: 'bullet', img: 'bullet.jpg'},
         {name: 'prayer', img: 'praying.jpg'},
-      ];
-
-      var nextId = 0;
-      cats.forEach(function(nextCat) {
-        nextCat.id = nextId;
-        nextId++;
-      })
-
-      var makeCatElement = function(cat) {
-        var name = cat.name;
-        var picture = cat.img;
-        var id = cat.id;
-
-        localStorageKey = 'cat' + id + '_count';
-        count = parseInt(localStorage.getItem(localStorageKey));
-        if (isNaN(count)) {
-          count = 0;
-        }
-
-        var cat = document.createElement('div');
-        var h2 = document.createElement('h2');
-        h2.innerHTML = name + " ";
-        var span = document.createElement('span');
-        span.id = 'cat ' + id + '_numClicks';
-        span.innerHTML = count;
-        var img = document.createElement('img');
-        img.src = picture;
-        img.alt = 'picture of' + name;
-        img.addEventListener('click', function() {
-          count = parseInt(span.innerHTML);
-          if (isNaN(count)) {
-            count = 0;
-          }
-          count++;
-          localStorage.setItem(localStorageKey, count);
-          span.innerHTML = count;
-        });
-
-        cat.appendChild(img);
-        cat.appendChild(h2);
-        h2.appendChild(span);
-
-        return cat;
-      }
+      ]);
 
       var handleLoad = function() {
         var list = document.getElementById('list');
         var displayArea = document.getElementById('displayArea');
-        var catElement = null;
+        var name = document.getElementById('name');
+        var pic = document.getElementById('pic');
+        var count = document.getElementById('count');
+
+        var selectedCatIdx = 0;
+
+        pic.addEventListener('click', function() {
+          catModel.incrementCatCount(selectedCatIdx);
+          displayCat(selectedCatIdx)
+        })
 
         var displayCat = function(catIdx) {
-          var nextCatElement = makeCatElement(cats[catIdx]);
-          if (nextCatElement) {
-            if (catElement) {
-              displayArea.replaceChild(nextCatElement, catElement);
-            } else {
-              displayArea.appendChild(nextCatElement);
-            }
-            catElement = nextCatElement;
-          }
+          selectedCatIdx = catIdx;
+          var cat = catModel.cats[catIdx];
+          name.innerHTML = cat.name;
+          pic.src = 'img/' + cat.img;
+          count.innerHTML = cat.count;
         }
 
-        cats.forEach(function(nextCat) {
-          var catPicker = document.createElement('div');
-          catPicker.innerHTML = nextCat.name;
-          catPicker.addEventListener('click', function() {
-            displayCat(nextCat.id);
-          });
-          list.appendChild(catPicker);
-        });
+        for (var idx in catModel.cats) {
+          (function(idx) {
+            var nextCat = catModel.cats[idx];
+            var catPicker = document.createElement('div');
+            catPicker.innerHTML = nextCat.name;
+            catPicker.addEventListener('click', function() {
+              displayCat(idx);
+            });
+            list.appendChild(catPicker);
+          })(idx);
+        }
       } 
     </script>
   </head>
@@ -87,6 +71,9 @@
     <div id="list">
     </div>
     <div id="displayArea">
+      <h6 id="name"> </h6>
+      <img id="pic">
+      <h6> <span id="count"> </span> clicks</h6>
     </div>
   <body>
 </html>
